@@ -1,6 +1,6 @@
 :orphan:
 
-Jinja2 Documentation
-====================
+Documentation
+=============
 
 .. include:: contents.rst.inc

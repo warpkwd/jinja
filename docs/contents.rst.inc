@@ -1,5 +1,5 @@
-Jinja2 Documentation
---------------------
+Documentation
+-------------
 
 .. toctree::
    :maxdepth: 2
