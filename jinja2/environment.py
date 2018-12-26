@@ -795,15 +795,16 @@ class Environment(object):
     def _load_template(self, name, globals):
         if self.loader is None:
             raise TypeError('no loader for this environment specified')
-        cache_key = (weakref.ref(self.loader), name)
-        if self.cache is not None:
-            template = self.cache.get(cache_key)
-            if template is not None and (not self.auto_reload or
-                                         template.is_up_to_date):
-                return template
+# Y.Kawada don't use cache for blueprint + flask-ask app
+#        cache_key = (weakref.ref(self.loader), name)
+#        if self.cache is not None:
+#            template = self.cache.get(cache_key)
+#            if template is not None and (not self.auto_reload or
+#                                         template.is_up_to_date):
+#                return template
         template = self.loader.load(self, name, globals)
-        if self.cache is not None:
-            self.cache[cache_key] = template
+#        if self.cache is not None:
+#            self.cache[cache_key] = template
         return template
 
     @internalcode
@@ -1074,7 +1075,7 @@ class Template(object):
 
     def make_module_async(self, vars=None, shared=False, locals=None):
         """As template module creation can invoke template code for
-        asynchronous exections this method must be used instead of the
+        asynchronous executions this method must be used instead of the
         normal :meth:`make_module` one.  Likewise the module attribute
         becomes unavailable in async mode.
         """

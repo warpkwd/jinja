@@ -67,7 +67,7 @@ class BaseLoader(object):
     #: .. versionadded:: 2.4
     has_source_access = True
 
-    def get_source(self, environment, template):
+    def get_source(self, environment, template, apath):
         """Get the template source, filename and reload helper for a template.
         It's passed the environment and template name and has to return a
         tuple in the form ``(source, filename, uptodate)`` or raise a
@@ -110,8 +110,11 @@ class BaseLoader(object):
 
         # first we try to get the source for this template together
         # with the filename and the uptodate function.
-        source, filename, uptodate = self.get_source(environment, name)
 
+        # app_path append to 3rd param
+        # Y.Kawada
+        req = globals['request']
+        source, filename, uptodate = self.get_source(environment, name, req.path[1:])
         # try to load the code from the bytecode cache if there is a
         # bytecode cache configured.
         bcc = environment.bytecode_cache
@@ -164,7 +167,7 @@ class FileSystemLoader(BaseLoader):
         self.encoding = encoding
         self.followlinks = followlinks
 
-    def get_source(self, environment, template):
+    def get_source(self, environment, template, apath):
         pieces = split_template_path(template)
         for searchpath in self.searchpath:
             filename = path.join(searchpath, *pieces)
@@ -228,7 +231,7 @@ class PackageLoader(BaseLoader):
         self.provider = provider
         self.package_path = package_path
 
-    def get_source(self, environment, template):
+    def get_source(self, environment, template, apath):
         pieces = split_template_path(template)
         p = '/'.join((self.package_path,) + tuple(pieces))
         if not self.provider.has_resource(p):
@@ -279,7 +282,7 @@ class DictLoader(BaseLoader):
     def __init__(self, mapping):
         self.mapping = mapping
 
-    def get_source(self, environment, template):
+    def get_source(self, environment, template, apath):
         if template in self.mapping:
             source = self.mapping[template]
             return source, None, lambda: source == self.mapping.get(template)
@@ -310,7 +313,7 @@ class FunctionLoader(BaseLoader):
     def __init__(self, load_func):
         self.load_func = load_func
 
-    def get_source(self, environment, template):
+    def get_source(self, environment, template, apath):
         rv = self.load_func(template)
         if rv is None:
             raise TemplateNotFound(template)
@@ -346,10 +349,10 @@ class PrefixLoader(BaseLoader):
             raise TemplateNotFound(template)
         return loader, name
 
-    def get_source(self, environment, template):
+    def get_source(self, environment, template, apath):
         loader, name = self.get_loader(template)
         try:
-            return loader.get_source(environment, name)
+            return loader.get_source(environment, name, apath)
         except TemplateNotFound:
             # re-raise the exception with the correct filename here.
             # (the one that includes the prefix)
@@ -390,10 +393,10 @@ class ChoiceLoader(BaseLoader):
     def __init__(self, loaders):
         self.loaders = loaders
 
-    def get_source(self, environment, template):
+    def get_source(self, environment, template, apath):
         for loader in self.loaders:
             try:
-                return loader.get_source(environment, template)
+                return loader.get_source(environment, template, apath)
             except TemplateNotFound:
                 pass
         raise TemplateNotFound(template)
